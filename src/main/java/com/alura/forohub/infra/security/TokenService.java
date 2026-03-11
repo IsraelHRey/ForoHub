@@ -4,6 +4,7 @@ import com.alura.forohub.domain.usuario.Usuario;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -33,5 +34,21 @@ public class TokenService {
 
     private Instant generarFechaExpiracion() {
         return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-05:00"));
+    }
+
+    public String getSubject(String token) {
+        if (token == null) {
+            throw new RuntimeException("Token nulo");
+        }
+        try {
+            Algorithm algoritmo = Algorithm.HMAC256(apiSecret);
+            return JWT.require(algoritmo)
+                    .withIssuer("ForoHub")
+                    .build()
+                    .verify(token)
+                    .getSubject();
+        } catch (JWTVerificationException exception) {
+            throw new RuntimeException("Token JWT inválido o expirado");
+        }
     }
 }
